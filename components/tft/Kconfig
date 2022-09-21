@@ -1,0 +1,12 @@
+menu "ESP32 TFT Library"
+
+    config TFT_RGB_BGR
+        hex "TFT_RGB_BGR"
+        default 0x08
+    
+    config TFT_PIN_NUM_MISO
+        int "MISO Pin"
+        range 1 100
+        default 32
+
+endmenu

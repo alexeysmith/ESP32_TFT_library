@@ -5,7 +5,7 @@
 
 **This library must be built with the latest esp-idf master branch and xtensa toolchain**
 
-If you are using the esp-idf v2.1, checkout the commit *0518df81a6566820352dad7bf6c539995d41ad18*
+If you are using the esp-idf v4.4
 
 ---
 
@@ -182,13 +182,6 @@ Also set **TFT_RGB_BGR** to 0x00 and **TFT_INVERT_ROTATION1** to 1 in *tftspi.h*
 
 ---
 
-**If you want to use different pins, change them in** *tftspi.h*
-
-**if you want to use the touch screen functions, set** `#define USE_TOUCH 1` in *tftspi.h*
-
-Using *make menuconfig* **select tick rate 1000** ( → Component config → FreeRTOS → Tick rate (Hz) ) to get more accurate timings
-
----
 
 #### How to build
 
@@ -196,193 +189,13 @@ Configure your esp32 build environment as for **esp-idf examples**
 
 Clone the repository
 
-`git clone https://github.com/loboris/ESP32_TFT_library.git`
+`git clone https://github.com/alexeysmith/ESP32_TFT_library.git`
 
-Execute menuconfig and configure your Serial flash config and other settings. Included *sdkconfig.defaults* sets some defaults to be used.
-
-Navigate to **TFT Display DEMO Configuration** and set **SPIFFS** options.
-
-Select if you want to use **wifi** (recommended) to get the time from **NTP** server and set your WiFi SSID and password.
-
-`make menuconfig`
-
-Make and flash the example.
-
-`make all && make flash`
+Build project
 
 ---
 
-#### Prepare **SPIFFS** image
-
-*The demo uses some image and font files and it is necessary to flash the spiffs image*
-
-**To flash already prepared image to flash** execute:
-
-`make copyfs`
-
----
-
-You can also prepare different SFPIFFS **image** and flash it to ESP32. *This feature is only tested on Linux.*
-
-Files to be included on spiffs are already in **components/spiffs_image/image/** directory. You can add or remove the files you want to include.
-
-Then execute:
-
-`make makefs`
-
-to create **spiffs image** in *build* directory **without flashing** to ESP32
-
-Or execute:
-
-`make flashfs`
-
-to create **spiffs image** in *build* directory and **flash** it to ESP32
-
----
-
-
----
-
-**Example output:**
-
-```
-
-I (0) cpu_start: App cpu up.
-I (312) heap_init: Initializing. RAM available for dynamic allocation:
-I (319) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM
-I (325) heap_init: At 3FFBB0B8 len 00024F48 (147 KiB): DRAM
-I (331) heap_init: At 3FFE0440 len 00003BC0 (14 KiB): D/IRAM
-I (338) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM
-I (344) heap_init: At 40091F94 len 0000E06C (56 KiB): IRAM
-I (350) cpu_start: Pro cpu start user code
-I (144) cpu_start: Starting scheduler on PRO CPU.
-I (0) cpu_start: Starting scheduler on APP CPU.
-
-==============================
-TFT display DEMO, LoBo 09/2017
-==============================
-
-SPI: display device added to spi bus (2)
-SPI: attached display device, speed=8000000
-SPI: bus uses native pins: false
-SPI: display init...
-OK
-SPI: Changed speed to 26666666
-
----------------------
-Graphics demo started
----------------------
-I (2815) [TFT Demo]: Time is not set yet. Connecting to WiFi and getting time over NTP.
-I (2845) wifi: wifi firmware version: ee52423
-I (2846) wifi: config NVS flash: enabled
-I (2846) wifi: config nano formating: disabled
-I (2846) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
-I (2856) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
-I (2890) wifi: Init dynamic tx buffer num: 32
-I (2890) wifi: Init data frame dynamic rx buffer num: 32
-I (2890) wifi: Init management frame dynamic rx buffer num: 32
-I (2894) wifi: wifi driver task: 3ffc83d8, prio:23, stack:4096
-I (2899) wifi: Init static rx buffer num: 10
-I (2903) wifi: Init dynamic rx buffer num: 32
-I (2907) wifi: Init rx ampdu len mblock:7
-I (2911) wifi: Init lldesc rx ampdu entry mblock:4
-I (2916) wifi: wifi power manager task: 0x3ffcd844 prio: 21 stack: 2560
-I (2922) [TFT Demo]: Setting WiFi configuration SSID LoBoInternet...
-I (2951) phy: phy_version: 359.0, e79c19d, Aug 31 2017, 17:06:07, 0, 0
-I (2951) wifi: mode : sta (24:0a:c4:11:a4:0c)
-I (3073) wifi: n:11 0, o:1 0, ap:255 255, sta:11 0, prof:1
-I (3731) wifi: state: init -> auth (b0)
-I (3734) wifi: state: auth -> assoc (0)
-I (3738) wifi: state: assoc -> run (10)
-I (3776) wifi: connected with LoBoInternet, channel 11
-I (5827) event: ip: 192.168.0.21, mask: 255.255.255.0, gw: 192.168.0.1
-I (5828) [TFT Demo]: Initializing SNTP
-I (6331) [TFT Demo]: System time is set.
-I (6331) wifi: state: run -> init (0)
-I (6332) wifi: n:11 0, o:11 0, ap:255 255, sta:11 0, prof:1
-I (6344) wifi: flush txq
-I (6344) wifi: stop sw txq
-I (6344) wifi: lmac stop hw txq
-E (6344) wifi: esp_wifi_connect 836 wifi not start
-
-
-I (8441) [SPIFFS]: Registering SPIFFS file system
-I (8441) [SPIFFS]: Mounting SPIFFS files system
-I (8441) [SPIFFS]: Start address: 0x280000; Size 1024 KB
-I (8447) [SPIFFS]:   Work buffer: 2048 B
-I (8451) [SPIFFS]:    FDS buffer: 384 B
-I (8456) [SPIFFS]:    Cache size: 2048 B
-I (8500) [SPIFFS]: Mounted
-
-==========================================
-Display: ILI9488: PORTRAIT 240,320 Color
-
-     Clear screen time: 60 ms
-Send color buffer time: 228 us (240 pixels)
-       JPG Decode time: 287 ms
-    BMP time, scale: 5: 422 ms
-    BMP time, scale: 4: 431 ms
-    BMP time, scale: 3: 430 ms
-    BMP time, scale: 2: 434 ms
-    BMP time, scale: 1: 442 ms
-    BMP time, scale: 0: 335 ms
-
-==========================================
-Display: ILI9488: LANDSCAPE 320,240 Color
-
-     Clear screen time: 57 ms
-Send color buffer time: 301 us (320 pixels)
-I (126333) event: station ip lost
-       JPG Decode time: 286 ms
-    BMP time, scale: 5: 422 ms
-    BMP time, scale: 4: 431 ms
-    BMP time, scale: 3: 433 ms
-    BMP time, scale: 2: 435 ms
-    BMP time, scale: 1: 444 ms
-    BMP time, scale: 0: 260 ms
-
-==========================================
-Display: ILI9488: PORTRAIT FLIP 240,320 Color
-
-     Clear screen time: 60 ms
-Send color buffer time: 228 us (240 pixels)
-       JPG Decode time: 287 ms
-    BMP time, scale: 5: 420 ms
-    BMP time, scale: 4: 430 ms
-    BMP time, scale: 3: 429 ms
-    BMP time, scale: 2: 436 ms
-    BMP time, scale: 1: 446 ms
-    BMP time, scale: 0: 338 ms
-
-==========================================
-Display: ILI9488: PORTRAIT FLIP 240,320 Color
-
-     Clear screen time: 60 ms
-Send color buffer time: 228 us (240 pixels)
-       JPG Decode time: 287 ms
-    BMP time, scale: 5: 420 ms
-    BMP time, scale: 4: 430 ms
-    BMP time, scale: 3: 429 ms
-    BMP time, scale: 2: 436 ms
-    BMP time, scale: 1: 446 ms
-    BMP time, scale: 0: 338 ms
-
-
-```
-
----
 
 ### Tested on
 
-ESP32-WROVER-KIT v3, ST7789V controller, 240x320
-![Tested on](https://raw.githubusercontent.com/loboris/MicroPython_ESP32_psRAM_LoBo/master/Documents/disp_wrower-kit.jpg)
-
-2.4" 240x320 ILI9341 conroller with Touch panel from eBay
-![Tested on](https://raw.githubusercontent.com/loboris/MicroPython_ESP32_psRAM_LoBo/master/Documents/disp_ili9341.jpg)
-
-3.5" 320x480 ILI9844 controller with Touch panel from BuyDisplay
-![Tested on](https://raw.githubusercontent.com/loboris/MicroPython_ESP32_psRAM_LoBo/master/Documents/disp_9488.jpg)
-
-1.8" 128x160 ST7735 conroller from eBay
-![Tested on](https://raw.githubusercontent.com/loboris/MicroPython_ESP32_psRAM_LoBo/master/Documents/disp_7735.jpg)
-
+ESP32-WROVER-KIT v3, ST7789V controller, 240x240

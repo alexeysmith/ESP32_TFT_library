@@ -15,7 +15,7 @@
 #include "tft.h"
 #include "time.h"
 #include <math.h>
-#include "rom/tjpgd.h"
+#include "esp32/rom/tjpgd.h"
 #include "esp_heap_caps.h"
 #include "tftspi.h"
 
@@ -2016,8 +2016,12 @@ void TFT_print(char *st, int x, int y) {
 			// Let's print the character
 			if (cfont.x_size == 0) {
 				// == proportional font
-				if (font_rotate == 0) TFT_X += printProportionalChar(TFT_X, TFT_Y) + 1;
-				else {
+				if (font_rotate == 0) {
+					// +1 заменено на +0, чтобы не было расстояний между символами
+					// (Чтобы избежать мерцаний при перерисовке текста)
+					// +1px добавлен непосредственно при отрисовке символа
+					TFT_X += printProportionalChar(TFT_X, TFT_Y) + 0; // +1
+				} else {
 					// rotated proportional font
 					offset += rotatePropChar(x, y, offset);
 					TFT_OFFSET = offset;
