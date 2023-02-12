@@ -40,7 +40,7 @@
 
 #if CONFIG_EXAMPLE_DISPLAY_TYPE == 1
 
-// ** Set the correct configuration for ESP32-WROVER-KIT v3
+// ** Set the correct configuration for ESP32-WROVER-KIT v4.1
 // --------------------------------------------------------
 #define DEFAULT_DISP_TYPE           DISP_TYPE_ST7789V
 #define DEFAULT_TFT_DISPLAY_WIDTH   240
@@ -52,7 +52,7 @@
 #define TFT_INVERT_ROTATION1        1
 #define TFT_RGB_BGR                 0x00
 
-#define USE_TOUCH	TOUCH_TYPE_NONE
+#define USE_TOUCH                   TOUCH_TYPE_NONE
 
 #define PIN_NUM_MISO 25		// SPI MISO
 #define PIN_NUM_MOSI 23		// SPI MOSI
@@ -128,12 +128,9 @@
 
 #else
 
-// Need define it in variables.h
-
-
 // Configuration for other boards, set the correct values for the display used
 //----------------------------------------------------------------------------
-#define DISP_COLOR_BITS_24	0x66
+#define DISP_COLOR_BITS_24	0x66          // 0x66 - 18 bit format
 //#define DISP_COLOR_BITS_16	0x55  // Do not use!
 
 // #############################################
@@ -148,7 +145,7 @@
 // ### SET TO 0X08 FOR DISPLAYS WITH BGR MATRIX ###
 // ### For ESP-WROWER-KIT set to 0x00           ###
 // ################################################
-#define TFT_RGB_BGR 0x00
+#define TFT_RGB_BGR CONFIG_TFT_RGB_BGR    // 0x08 было 
 
 // ##############################################################
 // ### Define ESP32 SPI pins to which the display is attached ###
@@ -156,19 +153,19 @@
 
 // The pins configured here are the native spi pins for HSPI interface
 // Any other valid pin combination can be used
-#define PIN_NUM_MISO CONFIG_TFT_PIN_NUM_MISO		// SPI MISO
-#define PIN_NUM_MOSI 12		// SPI MOSI
-#define PIN_NUM_CLK  25		// SPI CLOCK pin
-#define PIN_NUM_CS   33		// Display CS pin
-#define PIN_NUM_DC   27		// Display command/data pin
-#define PIN_NUM_TCS  25		// Touch screen CS pin (NOT used if USE_TOUCH=0)
+#define PIN_NUM_MISO CONFIG_TFT_PIN_NUM_MISO      // SPI MISO             [not use]
+#define PIN_NUM_MOSI CONFIG_TFT_PIN_NUM_MOSI      // SPI MOSI (SDA)       [12]
+#define PIN_NUM_CLK  CONFIG_TFT_PIN_NUM_CLK		    // SPI CLOCK pin (SCL)  [25]
+#define PIN_NUM_CS   0                            // Display CS pin       [not use]
+#define PIN_NUM_DC   CONFIG_TFT_PIN_NUM_DC        // Display command/data pin (DC)    [27]
+#define PIN_NUM_TCS  0                            // Touch screen CS pin (NOT used if USE_TOUCH=0)
 
 // --------------------------------------------------------------
 // ** Set Reset and Backlight pins to 0 if not used !
 // ** If you want to use them, set them to some valid GPIO number
-#define PIN_NUM_RST  26  	// GPIO used for RESET control
+#define PIN_NUM_RST  CONFIG_TFT_PIN_NUM_RST  	    // GPIO used for RESET control
 
-#define PIN_NUM_BCKL 17  	// GPIO used for backlight control
+#define PIN_NUM_BCKL 0  	// GPIO used for backlight control      [not use] (17)
 #define PIN_BCKL_ON  0  	// GPIO value for backlight ON
 #define PIN_BCKL_OFF 1  	// GPIO value for backlight OFF
 // --------------------------------------------------------------
@@ -182,15 +179,14 @@
 // #######################################################################
 // Default display width (smaller dimension) and height (larger dimension)
 // #######################################################################
-#define DEFAULT_TFT_DISPLAY_WIDTH  240
-#define DEFAULT_TFT_DISPLAY_HEIGHT 240
+#define DEFAULT_TFT_DISPLAY_WIDTH  CONFIG_TFT_WIDTH
+#define DEFAULT_TFT_DISPLAY_HEIGHT CONFIG_TFT_HEIGHT
 // #######################################################################
 
 #define DEFAULT_GAMMA_CURVE 0
 #define DEFAULT_SPI_CLOCK   8000000
 #define DEFAULT_DISP_TYPE   DISP_TYPE_ST7789V
 //----------------------------------------------------------------------------
-
 
 #endif  // CONFIG_EXAMPLE_ESP_WROVER_KIT
 
@@ -336,27 +332,31 @@ typedef struct __attribute__((__packed__)) {
 // ====================================
 static const uint8_t ST7789V_init[] = {
 #if PIN_NUM_RST
-  15,                   					        // 15 commands in list
+  16,                   					        // 15 commands in list (orig 15)
 #else
-  16,                   					        // 16 commands in list
+  17,                   					        // 16 commands in list (orig 16)
   TFT_CMD_SWRESET, TFT_CMD_DELAY,					//  1: Software reset, no args, w/delay
   200,												//     200 ms delay
 #endif
-  TFT_CMD_FRMCTR2, 5, 0x0c, 0x0c, 0x00, 0x33, 0x33,
-  TFT_ENTRYM, 1, 0x45,
-  ST_CMD_VCOMS, 1, 0x2B,
-  TFT_CMD_PWCTR1, 1, 0x2C,
-  TFT_CMD_PWCTR3, 2, 0x01, 0xff,
-  TFT_CMD_PWCTR4, 1, 0x11,
-  TFT_CMD_PWCTR5, 1, 0x20,
-  ST_CMD_FRCTRL2, 1, 0x0f,
-  ST_CMD_PWCTR1, 2, 0xA4, 0xA1,
-  TFT_CMD_GMCTRP1, 14, 0xD0, 0x00, 0x05, 0x0E, 0x15, 0x0D, 0x37, 0x43, 0x47, 0x09, 0x15, 0x12, 0x16, 0x19,
-  TFT_CMD_GMCTRN1, 14, 0xD0, 0x00, 0x05, 0x0D, 0x0C, 0x06, 0x2D, 0x44, 0x40, 0x0E, 0x1C, 0x18, 0x16, 0x19,
-  TFT_MADCTL, 1, (MADCTL_MX | TFT_RGB_BGR),			// Memory Access Control (orientation)
-  TFT_CMD_PIXFMT, 1, DISP_COLOR_BITS_24,            // *** INTERFACE PIXEL FORMAT: 0x66 -> 18 bit; 0x55 -> 16 bit
-  TFT_CMD_SLPOUT, TFT_CMD_DELAY, 120,				//  Sleep out,	//  120 ms delay
-  TFT_DISPON, TFT_CMD_DELAY, 120,
+  TFT_CMD_FRMCTR2, 5, 0x0c, 0x0c, 0x00, 0x33, 0x33,       // Settings: BPA, FPA (in normal), 0, FPB и др (in idle and partial) [3ms]
+  TFT_ENTRYM, 1, 0x45,                                    // Gate Control ?             [4ms]
+  ST_CMD_VCOMS, 1, 0x2B,                                  // VCOM Setting - set 2bh = 1.175 V ???   [3ms]
+  TFT_CMD_PWCTR1, 1, 0x2C,                                // LCM Control - set ????                 [3ms]
+  TFT_CMD_PWCTR3, 2, 0x01, 0xff,                          // VDV and VRH Command Enable ??          [3ms]
+  TFT_CMD_PWCTR4, 1, 0x11,                                // VRH Set - set 4.4+( vcom+vcom offset+0.5vdv)     [3ms]
+  TFT_CMD_PWCTR5, 1, 0x20,                                // VDV Set - set 0                                  [3ms]
+  ST_CMD_FRCTRL2, 1, 0x0f,                                // Frame Rate Control in Normal Mode - set 60Hz     [3ms]
+  ST_CMD_PWCTR1, 2, 0xA4, 0xA1,                           // Power Control 1 - set ???                        [3ms]
+  TFT_CMD_GMCTRP1, 14, 0xD0, 0x00, 0x05, 0x0E, 0x15, 0x0D, 0x37, 0x43, 0x47, 0x09, 0x15, 0x12, 0x16, 0x19,    // Positive Voltage Gamma Control   [3ms]
+  TFT_CMD_GMCTRN1, 14, 0xD0, 0x00, 0x05, 0x0D, 0x0C, 0x06, 0x2D, 0x44, 0x40, 0x0E, 0x1C, 0x18, 0x16, 0x19,    // Negative Voltage Gamma Control   [3ms]
+  TFT_MADCTL, 1, (MADCTL_MX | TFT_RGB_BGR),			          // Memory Access Control (orientation)              [3ms]
+  // 3A(TFT_CMD_PIXFMT) - установить формат RGB, 0x66 = 0b 110 0 110 (110 - 262K of RGB, 110 - 18bit/pixel)
+  TFT_CMD_PIXFMT, 1, DISP_COLOR_BITS_24,                  // *** INTERFACE PIXEL FORMAT: 0x66 -> 18 bit; 0x55 -> 16 bit     [3ms]
+  // Две последних команды нужны (без них экран не включается), но уменьшены команды задержки до 10 мс
+  TFT_CMD_SLPOUT, TFT_CMD_DELAY, 10,				              // Sleep mode off + delay  (120 ms delay orig)      [123ms --> 10ms]
+  TFT_DISPON, TFT_CMD_DELAY, 10,                          // Display on mode    (120ms orig)                  [120ms --> 10ms]
+  // Сразу же добавлена инверсия (именно для этого китайского дисплея)
+  TFT_INVONN,
 };
 
 // Initialization sequence for ILI7341
@@ -669,6 +669,8 @@ void TFT_PinsInit();
 //======================
 void TFT_display_init();
 
+void TFT_spi_init(spi_lobo_host_device_t spi_bus);
+
 //===================
 void stmpe610_Init();
 
@@ -679,5 +681,6 @@ int stmpe610_get_touch(uint16_t *x, uint16_t *y, uint16_t *z);
 uint32_t stmpe610_getID();
 
 // ===============================================================================
+
 
 #endif

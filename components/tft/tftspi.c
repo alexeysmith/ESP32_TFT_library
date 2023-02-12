@@ -677,7 +677,6 @@ uint32_t find_rd_speed()
     uint8_t *line_rdbuf = NULL;
     uint8_t gs = gray_scale;
 
-    gray_scale = 0;
     cur_speed = spi_lobo_get_speed(disp_spi);
 
 	color_line = malloc(_width*3);
@@ -834,7 +833,7 @@ void _tft_setRotation(uint8_t rot) {
     #else
     switch (rotation) {
         case PORTRAIT:
-        madctl = (MADCTL_MX | TFT_RGB_BGR);
+        madctl = (MADCTL_MX | TFT_RGB_BGR);   // Default: no MADCTL_MX
         break;
         case LANDSCAPE:
         madctl = (MADCTL_MV | TFT_RGB_BGR);
@@ -890,6 +889,9 @@ void TFT_PinsInit()
 #endif
 }
 
+
+
+
 // Initialize the display
 // ====================
 void TFT_display_init()
@@ -899,9 +901,9 @@ void TFT_display_init()
 #if PIN_NUM_RST
     //Reset the display
     gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(20 / portTICK_RATE_MS);
+    vTaskDelay(1 / portTICK_RATE_MS);		// 20ms (orig) // Согласно документации, достаточно 10 мкс
     gpio_set_level(PIN_NUM_RST, 1);
-    vTaskDelay(150 / portTICK_RATE_MS);
+    vTaskDelay(1 / portTICK_RATE_MS);		// 150ms (orig)	// Согласно документации, 120 мкс будет достаточно
 #endif
 
     ret = disp_select();
@@ -914,6 +916,7 @@ void TFT_display_init()
 		commandList(disp_spi, ILI9488_init);
 	}
 	else if (tft_disp_type == DISP_TYPE_ST7789V) {
+		// 20ms
 		commandList(disp_spi, ST7789V_init);
 	}
 	else if (tft_disp_type == DISP_TYPE_ST7735) {
@@ -936,14 +939,55 @@ void TFT_display_init()
     ret = disp_deselect();
 	assert(ret==ESP_OK);
 
-	// Clear screen
-    _tft_setRotation(PORTRAIT);
-	TFT_pushColorRep(0, 0, _width-1, _height-1, (color_t){0,0,0}, (uint32_t)(_height*_width));
+	// Поворот изображения (почему-то корректно работает только PORTRAIT_FLIP и LANDSCAPE_FLIP)
+    _tft_setRotation(PORTRAIT_FLIP);
+	// Команда ниже выполняется 1.4 сек, и особо ни на что не влияет, отключено.
+	//TFT_pushColorRep(0, 0, _width-1, _height-1, (color_t){0,0,0}, (uint32_t)(_height*_width)); // 1500ms команда...
 
 	///Enable backlight
 #if PIN_NUM_BCKL
     gpio_set_level(PIN_NUM_BCKL, PIN_BCKL_ON);
 #endif
 }
+
+
+
+void TFT_spi_init(spi_lobo_host_device_t spi_bus)
+{
+	esp_err_t ret;
+	// 1) Конфигурация spi devices [+10ms]
+    spi_lobo_device_handle_t spi;
+    spi_lobo_bus_config_t buscfg={
+        .miso_io_num=PIN_NUM_MISO,				// set SPI MISO pin
+        .mosi_io_num=PIN_NUM_MOSI,				// set SPI MOSI pin
+        .sclk_io_num=PIN_NUM_CLK,				// set SPI CLK pin
+        .quadwp_io_num=-1,
+        .quadhd_io_num=-1,
+		.max_transfer_sz = 6*1024,
+    };
+    spi_lobo_device_interface_config_t devcfg={
+        .clock_speed_hz=1000000,                // Initial clock out at 1-8 MHz
+        .mode=2,                                // SPI mode 0 (2??)
+        .spics_io_num=-1,                       // we will use external CS pin
+        .spics_ext_io_num=PIN_NUM_CS,           // external CS pin
+        .flags=LB_SPI_DEVICE_HALFDUPLEX,        // ALWAYS SET  to HALF DUPLEX MODE!! for display spi
+    };
+    vTaskDelay(10 / portTICK_RATE_MS);         // 500 in original, уменьшено с 500мс до 10мс
+    ret=spi_lobo_bus_add_device(spi_bus, &buscfg, &devcfg, &spi);
+    assert(ret==ESP_OK);
+
+    // 2) В эту глобальную переменную записали созданный spi
+    disp_spi = spi;
+
+
+    // 3) Инициализация (reset, включение дисплея) [22ms]
+	TFT_display_init();
+
+    // 4) Сомнительные операции по нахождению максимальной скорости spi отключены
+    spi_lobo_set_speed(spi, DEFAULT_SPI_CLOCK);
+
+}
+
+
 
 

@@ -1,12 +1,36 @@
 menu "ESP32 TFT Library"
 
     config TFT_RGB_BGR
-        hex "TFT_RGB_BGR"
-        default 0x08
+        hex "TFT_RGB_BGR (0X00 FOR DISPLAYS WITH RGB MATRIX)"
+        default 0x00
     
     config TFT_PIN_NUM_MISO
         int "MISO Pin"
         range 1 100
         default 32
+    config TFT_PIN_NUM_CLK
+        int "CLK Pin (SCL)"
+        range 1 100
+        default 25
+    config TFT_PIN_NUM_MOSI
+        int "MOSI Pin (SDA)"
+        range 1 100
+        default 12
+    config TFT_PIN_NUM_DC
+        int "DC Pin"
+        range 1 100
+        default 27
+    config TFT_PIN_NUM_RST
+        int "RESET Pin (RES)"
+        range 1 100
+        default 26
+    config TFT_WIDTH
+        int "Screen Width"
+        range 1 9000
+        default 240
+    config TFT_HEIGHT
+        int "Screen Height"
+        range 1 9000
+        default 240
 
 endmenu

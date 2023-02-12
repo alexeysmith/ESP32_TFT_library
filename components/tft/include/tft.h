@@ -676,4 +676,7 @@ int compile_font_file(char *fontfile, uint8_t dbg);
  */
 void getFontCharacters(uint8_t *buf);
 
+
+void TFT_WriteLine(int n, char * text);
+
 #endif

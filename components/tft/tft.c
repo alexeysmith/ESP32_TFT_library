@@ -1547,15 +1547,16 @@ void TFT_setFont(uint8_t font, const char *font_file)
 //----------------------------------------------
 static int printProportionalChar(int x, int y) {
 	uint8_t ch = 0;
-	int i, j, char_width;
+	int i, j, char_width, char_width_p;
 
 	char_width = ((fontChar.width > fontChar.xDelta) ? fontChar.width : fontChar.xDelta);
+	char_width_p = char_width + 1; // На 1 больше ширины символа
 
 	if ((font_buffered_char) && (!font_transparent)) {
 		int len, bufPos;
 
 		// === buffer Glyph data for faster sending ===
-		len = char_width * cfont.y_size;
+		len = char_width_p * cfont.y_size; // Длина буффера с учетом 1 пикселя справа
 		color_t *color_line = heap_caps_malloc(len*3, MALLOC_CAP_DMA);
 		if (color_line) {
 			// fill with background color
@@ -1572,7 +1573,7 @@ static int printProportionalChar(int x, int y) {
 					}
 					if ((ch & mask) != 0) {
 						// visible pixel
-						bufPos = ((j + fontChar.adjYOffset) * char_width) + (fontChar.xOffset + i);  // bufY + bufX
+						bufPos = ((j + fontChar.adjYOffset) * char_width_p) + (fontChar.xOffset + i);  // bufY + bufX
 						color_line[bufPos] = _fg;
 						/*
 						bufY = (j + fontChar.adjYOffset) * char_width;
@@ -1591,11 +1592,11 @@ static int printProportionalChar(int x, int y) {
 			}
 			// send to display in one transaction
 			disp_select();
-			send_data(x, y, x+char_width-1, y+cfont.y_size-1, len, color_line);
+			send_data(x, y, x+char_width_p-1, y+cfont.y_size-1, len, color_line);
 			disp_deselect();
 			free(color_line);
 
-			return char_width;
+			return char_width_p; // Возвращается ширина символа плюс 1 пиксель справа, который заполнен фоновым цветом
 		}
 	}
 
@@ -2950,5 +2951,16 @@ int TFT_read_touch(int *x, int* y, uint8_t raw)
 	*y = Y;
 	return 1;
     #endif
+}
+
+
+
+
+uint32_t _lineHeight = 30; // полная ширина линии
+uint32_t _lineFontOffsetY = 1; // смещение от верха линии
+uint32_t _lineFontOffsetX = 2; // смещение первого символа строки слева
+void TFT_WriteLine(int n, char * text)
+{
+    TFT_print(text, _lineFontOffsetX, _lineFontOffsetY + n * _lineHeight);
 }
 
