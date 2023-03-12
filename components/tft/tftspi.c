@@ -603,14 +603,14 @@ uint32_t stmpe610_getID()
 void stmpe610_Init()
 {
     stmpe610_write_reg(STMPE610_REG_SYS_CTRL1, 0x02);        // Software chip reset
-    vTaskDelay(10 / portTICK_RATE_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 
     stmpe610_write_reg(STMPE610_REG_SYS_CTRL2, 0x04);        // Temperature sensor clock off, GPIO clock off, touch clock on, ADC clock on
 
     stmpe610_write_reg(STMPE610_REG_INT_EN, 0x00);           // Don't Interrupt on INT pin
 
     stmpe610_write_reg(STMPE610_REG_ADC_CTRL1, 0x48);        // ADC conversion time = 80 clock ticks, 12-bit ADC, internal voltage refernce
-    vTaskDelay(2 / portTICK_RATE_MS);
+    vTaskDelay(2 / portTICK_PERIOD_MS);
     stmpe610_write_reg(STMPE610_REG_ADC_CTRL2, 0x01);        // ADC speed 3.25MHz
     stmpe610_write_reg(STMPE610_REG_GPIO_AF, 0x00);          // GPIO alternate function - OFF
     stmpe610_write_reg(STMPE610_REG_TSC_CFG, 0xE3);          // Averaging 8, touch detect delay 1ms, panel driver settling time 1ms
@@ -757,7 +757,7 @@ static void commandList(spi_lobo_device_handle_t spi, const uint8_t *addr) {
     if(ms) {
       ms = *addr++;              // Read post-command delay time (ms)
       if(ms == 255) ms = 500;    // If 255, delay for 500 ms
-	  vTaskDelay(ms / portTICK_RATE_MS);
+	  vTaskDelay(ms / portTICK_PERIOD_MS);
     }
   }
 }
@@ -859,11 +859,16 @@ void _tft_setRotation(uint8_t rot) {
 void TFT_PinsInit()
 {
     // Route all used pins to GPIO control
-    gpio_pad_select_gpio(PIN_NUM_CS);
-    gpio_pad_select_gpio(PIN_NUM_MISO);
-    gpio_pad_select_gpio(PIN_NUM_MOSI);
-    gpio_pad_select_gpio(PIN_NUM_CLK);
-    gpio_pad_select_gpio(PIN_NUM_DC);
+    //gpio_pad_select_gpio(PIN_NUM_CS);
+    //gpio_pad_select_gpio(PIN_NUM_MISO);
+    //gpio_pad_select_gpio(PIN_NUM_MOSI);
+    //gpio_pad_select_gpio(PIN_NUM_CLK);
+    //gpio_pad_select_gpio(PIN_NUM_DC);
+	gpio_reset_pin(PIN_NUM_CS);
+	gpio_reset_pin(PIN_NUM_MISO);
+	gpio_reset_pin(PIN_NUM_MOSI);
+	gpio_reset_pin(PIN_NUM_CLK);
+	gpio_reset_pin(PIN_NUM_DC);
 
     gpio_set_direction(PIN_NUM_MISO, GPIO_MODE_INPUT);
     gpio_set_pull_mode(PIN_NUM_MISO, GPIO_PULLUP_ONLY);
@@ -883,7 +888,8 @@ void TFT_PinsInit()
 #endif
 
 #if PIN_NUM_RST
-    gpio_pad_select_gpio(PIN_NUM_RST);
+    //gpio_pad_select_gpio(PIN_NUM_RST);
+	gpio_reset_pin(PIN_NUM_RST);
     gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_NUM_RST, 0);
 #endif
@@ -901,9 +907,9 @@ void TFT_display_init()
 #if PIN_NUM_RST
     //Reset the display
     gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(1 / portTICK_RATE_MS);		// 20ms (orig) // Согласно документации, достаточно 10 мкс
+    vTaskDelay(1 / portTICK_PERIOD_MS);		// 20ms (orig) // Согласно документации, достаточно 10 мкс
     gpio_set_level(PIN_NUM_RST, 1);
-    vTaskDelay(1 / portTICK_RATE_MS);		// 150ms (orig)	// Согласно документации, 120 мкс будет достаточно
+    vTaskDelay(1 / portTICK_PERIOD_MS);		// 150ms (orig)	// Согласно документации, 120 мкс будет достаточно
 #endif
 
     ret = disp_select();
@@ -972,7 +978,7 @@ void TFT_spi_init(spi_lobo_host_device_t spi_bus)
         .spics_ext_io_num=PIN_NUM_CS,           // external CS pin
         .flags=LB_SPI_DEVICE_HALFDUPLEX,        // ALWAYS SET  to HALF DUPLEX MODE!! for display spi
     };
-    vTaskDelay(10 / portTICK_RATE_MS);         // 500 in original, уменьшено с 500мс до 10мс
+    vTaskDelay(10 / portTICK_PERIOD_MS);         // 500 in original, уменьшено с 500мс до 10мс
     ret=spi_lobo_bus_add_device(spi_bus, &buscfg, &devcfg, &spi);
     assert(ret==ESP_OK);
 

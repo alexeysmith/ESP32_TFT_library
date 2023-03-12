@@ -79,9 +79,10 @@ Main driver's function is 'spi_lobo_transfer_data()'
 #include "soc/uart_struct.h"
 #include "driver/uart.h"
 #include "driver/gpio.h"
-#include "driver/periph_ctrl.h"
+#include "rom/gpio.h"
+#include "esp_private/periph_ctrl.h"
+#include "hal/gpio_ll.h"
 #include "esp_heap_caps.h"
-#include "driver/periph_ctrl.h"
 #include "spi_master_lobo.h"
 
 
@@ -635,8 +636,8 @@ esp_err_t spi_lobo_bus_remove_device(spi_lobo_device_handle_t handle)
 		if (spihost[handle->host_dev]->device[x] !=NULL) break;
 	}
 	if (x == NO_DEV) {
+        spi_lobo_bus_free(handle->host_dev, 1);
 		free(handle);
-		spi_lobo_bus_free(handle->host_dev, 1);
 	}
 	else free(handle);
 

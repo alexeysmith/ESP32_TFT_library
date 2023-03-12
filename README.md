@@ -5,7 +5,7 @@
 
 **This library must be built with the latest esp-idf master branch and xtensa toolchain**
 
-If you are using the esp-idf v4.4
+If you are using the esp-idf v5.0
 
 ---
 
