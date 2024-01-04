@@ -3,7 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
-#include "esp_spi_flash.h"
+#include "spi_flash_mmap.h"
 
 #include "esp_log.h"
 
@@ -21,7 +21,7 @@
 
 
 
-
+int initMs = 0;
 
 
 void init_tft()
@@ -41,31 +41,39 @@ void init_tft()
     _fg = TFT_GREEN;            // Цвет текста
     _bg = TFT_BLACK;            // Цвет фона при печати текста (пока не может быть transparent)
 
-    // 3) Инициализация pins [+1ms]
+    // 3) Инициализация pins
     TFT_PinsInit();
+    // initMs = (int)esp_log_timestamp();      // 420ms
     // 4) Инициализация spi и экрана
     TFT_spi_init(TFT_HSPI_HOST);
+    // initMs = (int)esp_log_timestamp();      // 452ms
     // 5) Настройки по-умолчанию
 	TFT_setGammaCurve(DEFAULT_GAMMA_CURVE);
     TFT_resetclipwin();
+    // initMs = (int)esp_log_timestamp();      // 452ms
     TFT_setFont(DEJAVU24_FONT, NULL);
+    // initMs = (int)esp_log_timestamp();      // 452ms
     TFT_fillScreen(_bg);
+    // initMs = (int)esp_log_timestamp();      // 626ms (очистка экрана занимает 174мс)
 }
 
 
 
 void app_main(void)
 {
-    
+    // initMs = (int)esp_log_timestamp();      // 364ms
 
     // Инициализация
     init_tft();
+    // pin 13 init - led blink
+    gpio_reset_pin(13);
+    gpio_set_direction(13, GPIO_MODE_OUTPUT);
 
     char buf[100];
     int index = 0;
     int x = 0;
     int y = 0;
-    int initMs = (int)esp_log_timestamp();
+    initMs = (int)esp_log_timestamp();   // 627ms
     while(1) {
         // 1) Screen 01 - text
         TFT_fillScreen(_bg);
@@ -90,6 +98,7 @@ void app_main(void)
             }
         }
         // 2) Screen 02 - move text
+        gpio_set_level(13, 1);
         TFT_fillScreen(_bg);
         TFT_WriteLine(0, "Screen 02 - move text");
         index = 0;
@@ -106,6 +115,7 @@ void app_main(void)
             }
         }
         // 3) Screen 03 - pixels
+        gpio_set_level(13, 0);
         TFT_fillScreen(_bg);
         TFT_WriteLine(0, "Screen 03 - pixels");
         index = 0;
@@ -120,6 +130,7 @@ void app_main(void)
             }
         }
         // 4) Screen 04 - lines
+        gpio_set_level(13, 0);
         TFT_fillScreen(_bg);
         TFT_WriteLine(0, "Screen 04 - lines");
         index = 0;
@@ -146,7 +157,7 @@ void app_main(void)
                 break;
             }
         }
-        // 5) Screen 06 - rect
+        // 6) Screen 06 - rect
         TFT_fillScreen(_bg);
         TFT_WriteLine(0, "Screen 06 - circles");
         index = 0;
